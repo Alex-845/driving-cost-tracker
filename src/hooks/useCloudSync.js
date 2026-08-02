@@ -43,10 +43,10 @@ export const useCloudSync = ({ localReady, snapshot, applySnapshot }) => {
 
   useEffect(() => {
     if (!supabase) return undefined;
+    let active = true;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      if (event === "PASSWORD_RECOVERY") setPasswordRecovery(true);
-      if (!nextSession) setPasswordRecovery(false);
+    const applySession = (nextSession) => {
+      if (!active) return;
       const nextUserId = nextSession?.user?.id || "";
       if (nextUserId !== sessionUserIdRef.current) {
         sessionUserIdRef.current = nextUserId;
@@ -55,9 +55,29 @@ export const useCloudSync = ({ localReady, snapshot, applySnapshot }) => {
       }
       setSession(nextSession);
       setAuthReady(true);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === "PASSWORD_RECOVERY") setPasswordRecovery(true);
+      if (!nextSession) setPasswordRecovery(false);
+      applySession(nextSession);
     });
 
-    return () => subscription.unsubscribe();
+    supabase.auth.getSession()
+      .then(({ data, error }) => {
+        if (error && active) setSyncError(error.message);
+        applySession(data?.session || null);
+      })
+      .catch((error) => {
+        if (!active) return;
+        setSyncError(error.message);
+        applySession(null);
+      });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
