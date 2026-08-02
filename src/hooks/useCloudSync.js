@@ -23,7 +23,7 @@ const toCloudRow = (userId, snapshot) => ({
 
 export const useCloudSync = ({ localReady, snapshot, applySnapshot }) => {
   const [session, setSession] = useState(null);
-  const [authReady, setAuthReady] = useState(!isSupabaseConfigured);
+  const [authReady, setAuthReady] = useState(true);
   const [cloudReady, setCloudReady] = useState(!isSupabaseConfigured);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [syncStatus, setSyncStatus] = useState(isSupabaseConfigured ? "等待登录" : "本地模式");
