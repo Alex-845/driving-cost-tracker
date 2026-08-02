@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, ComposedChart } from "recharts";
 import AuthScreen from "./components/AuthScreen";
+import PasswordResetScreen from "./components/PasswordResetScreen";
 import { CHART_OPTIONS, ETC_STORAGE_KEY, FORM_FIELDS, IGNORED_ISSUES_KEY, ISSUE_TYPES, RECORD_COLUMNS, ROUTE_NAME_RULES_KEY, STORAGE_KEY, TAB_LABELS, TABS } from "./config/appConfig";
 import { detectDataIssues, getRouteNameGroups } from "./lib/dataQuality";
 import { parseDrivingWorkbook } from "./lib/excelImport";
@@ -408,7 +409,26 @@ export default function App() {
   const boxS = { background: "rgba(255,255,255,.03)", borderRadius: 16, padding: "20px 10px 10px", border: "1px solid rgba(255,255,255,.06)", marginBottom: 20 };
   const ttS = { background: "#1e293b", border: "1px solid #334155", borderRadius: 10, fontSize: 12 };
 
-  if (cloud.configured && (!cloud.authReady || (cloud.session && !cloud.cloudReady))) {
+  if (cloud.configured && !cloud.authReady) {
+    return (
+      <div style={{
+        minHeight: "100vh", display: "grid", placeItems: "center", padding: 20,
+        color: "#cbd5e1", fontFamily: "'Noto Sans SC','PingFang SC',-apple-system,sans-serif",
+        background: "linear-gradient(135deg,#0c1220 0%,#1a1a2e 50%,#16213e 100%)"
+      }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>行车油耗追踪</div>
+          <div style={{ fontSize: 13, color: "#94a3b8" }}>{cloud.syncStatus}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (cloud.configured && cloud.passwordRecovery) {
+    return <PasswordResetScreen email={cloud.session?.user?.email} onUpdatePassword={cloud.updatePassword} />;
+  }
+
+  if (cloud.configured && cloud.session && !cloud.cloudReady) {
     return (
       <div style={{
         minHeight: "100vh", display: "grid", placeItems: "center", padding: 20,
@@ -424,7 +444,7 @@ export default function App() {
   }
 
   if (cloud.configured && !cloud.session) {
-    return <AuthScreen authReady={cloud.authReady} onSignIn={cloud.signIn} onSignUp={cloud.signUp} />;
+    return <AuthScreen authReady={cloud.authReady} onSignIn={cloud.signIn} onSignUp={cloud.signUp} onPasswordReset={cloud.requestPasswordReset} />;
   }
 
   return (

@@ -25,6 +25,7 @@ export const useCloudSync = ({ localReady, snapshot, applySnapshot }) => {
   const [session, setSession] = useState(null);
   const [authReady, setAuthReady] = useState(!isSupabaseConfigured);
   const [cloudReady, setCloudReady] = useState(!isSupabaseConfigured);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [syncStatus, setSyncStatus] = useState(isSupabaseConfigured ? "等待登录" : "本地模式");
   const [syncError, setSyncError] = useState("");
   const applySnapshotRef = useRef(applySnapshot);
@@ -43,7 +44,9 @@ export const useCloudSync = ({ localReady, snapshot, applySnapshot }) => {
   useEffect(() => {
     if (!supabase) return undefined;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === "PASSWORD_RECOVERY") setPasswordRecovery(true);
+      if (!nextSession) setPasswordRecovery(false);
       const nextUserId = nextSession?.user?.id || "";
       if (nextUserId !== sessionUserIdRef.current) {
         sessionUserIdRef.current = nextUserId;
@@ -149,15 +152,32 @@ export const useCloudSync = ({ localReady, snapshot, applySnapshot }) => {
     await supabase.auth.signOut();
   }, []);
 
+  const requestPasswordReset = useCallback(async (email) => {
+    if (!supabase) return { error: new Error("云端服务尚未配置") };
+    return supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname
+    });
+  }, []);
+
+  const updatePassword = useCallback(async (password) => {
+    if (!supabase) return { error: new Error("云端服务尚未配置") };
+    const result = await supabase.auth.updateUser({ password });
+    if (!result.error) setPasswordRecovery(false);
+    return result;
+  }, []);
+
   return {
     configured: isSupabaseConfigured,
     session,
+    passwordRecovery,
     authReady,
     cloudReady,
     syncStatus,
     syncError,
     signIn,
     signUp,
+    requestPasswordReset,
+    updatePassword,
     signOut
   };
 };
