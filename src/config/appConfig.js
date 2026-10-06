@@ -49,9 +49,9 @@ export const RECORD_COLUMNS = [
 export const ISSUE_TYPES = ["空格", "里程偏差", "疑似重复", "重叠行程", "数值异常"];
 
 export const ISSUE_TYPE_COLORS = {
-  空格: { bg: "rgba(239,68,68,.15)", fg: "#ef4444" },
-  里程偏差: { bg: "rgba(139,92,246,.15)", fg: "#8b5cf6" },
-  疑似重复: { bg: "rgba(249,115,22,.15)", fg: "#f97316" },
+  空格: { bg: "rgba(239,68,68,.15)", fg: "var(--red)" },
+  里程偏差: { bg: "rgba(139,92,246,.15)", fg: "var(--violet)" },
+  疑似重复: { bg: "rgba(249,115,22,.15)", fg: "var(--orange)" },
   重叠行程: { bg: "rgba(234,179,8,.15)", fg: "#eab308" },
   数值异常: { bg: "rgba(236,72,153,.15)", fg: "#ec4899" }
 };

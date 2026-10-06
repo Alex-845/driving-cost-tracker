@@ -6,8 +6,56 @@
     <title>行车油耗追踪</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { background: #0c1220; }
+      :root {
+        color-scheme: dark;
+        --ink: 255,255,255;
+        --page-bg: linear-gradient(135deg,#0c1220 0%,#1a1a2e 50%,#16213e 100%);
+        --solid: #1a1a2e;
+        --text: #e2e8f0; --text2: #cbd5e1; --muted: #94a3b8; --faint: #64748b;
+        --blue: #60a5fa; --blue-t: #93c5fd; --red: #ef4444; --red-t: #fca5a5; --rose: #fb7185;
+        --green: #10b981; --green-t: #86efac; --orange: #f97316; --orange-t: #fdba74;
+        --amber-t: #fbbf24; --violet: #8b5cf6; --violet-t: #a78bfa;
+        --glass-bg: linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.025));
+        --glass-border: rgba(255,255,255,.1);
+        --glass-shadow: 0 18px 50px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.07);
+        --tile-bg: rgba(255,255,255,.04); --tile-border: rgba(255,255,255,.09);
+        --header-bg: rgba(12,18,32,.55);
+        --pop-bg: #1e293b; --pop-border: #334155;
+        --tip-bg: rgba(15,23,42,.92); --tip-border: rgba(148,163,184,.25);
+        --tab-on: linear-gradient(135deg,rgba(59,130,246,.75),rgba(99,102,241,.75));
+        --aurora: radial-gradient(520px 520px at 8% -4%,rgba(59,130,246,.22),transparent 70%),radial-gradient(560px 560px at 100% 18%,rgba(139,92,246,.20),transparent 70%),radial-gradient(520px 520px at 40% 108%,rgba(16,185,129,.10),transparent 70%);
+      }
+      :root[data-theme="light"] {
+        color-scheme: light;
+        --ink: 15,23,42;
+        --page-bg: linear-gradient(135deg,#eef3fb 0%,#e9eefb 50%,#f2eefb 100%);
+        --solid: #f1f4fb;
+        --text: #0f172a; --text2: #334155; --muted: #475569; --faint: #64748b;
+        --blue: #2563eb; --blue-t: #1d4ed8; --red: #dc2626; --red-t: #b91c1c; --rose: #e11d48;
+        --green: #059669; --green-t: #047857; --orange: #ea580c; --orange-t: #c2410c;
+        --amber-t: #b45309; --violet: #7c3aed; --violet-t: #6d28d9;
+        --glass-bg: linear-gradient(160deg,rgba(255,255,255,.88),rgba(255,255,255,.62));
+        --glass-border: rgba(255,255,255,.9);
+        --glass-shadow: 0 18px 44px rgba(51,65,120,.14), 0 1px 3px rgba(51,65,120,.08), inset 0 1px 0 rgba(255,255,255,.9);
+        --tile-bg: rgba(255,255,255,.72); --tile-border: rgba(15,23,42,.08);
+        --header-bg: rgba(244,247,254,.7);
+        --pop-bg: #ffffff; --pop-border: #cbd5e1;
+        --tip-bg: rgba(255,255,255,.96); --tip-border: rgba(15,23,42,.14);
+        --tab-on: linear-gradient(135deg,#2563eb,#4f46e5);
+        --aurora: radial-gradient(520px 520px at 8% -4%,rgba(59,130,246,.18),transparent 70%),radial-gradient(560px 560px at 100% 18%,rgba(167,139,250,.20),transparent 70%),radial-gradient(520px 520px at 40% 108%,rgba(16,185,129,.10),transparent 70%);
+      }
+      body { background: var(--solid); }
     </style>
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("driving-theme-v1");
+          var theme = saved === "light" || saved === "dark" ? saved
+            : (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

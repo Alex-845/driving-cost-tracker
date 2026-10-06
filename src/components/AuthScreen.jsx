@@ -47,16 +47,16 @@ export default function AuthScreen({ authReady, onSignIn, onSignUp, onPasswordRe
   return (
     <div style={{
       minHeight: "100vh", display: "grid", placeItems: "center", padding: 20,
-      boxSizing: "border-box", color: "#e2e8f0",
+      boxSizing: "border-box", color: "var(--text)",
       fontFamily: "'Noto Sans SC','PingFang SC',-apple-system,sans-serif",
-      background: "linear-gradient(135deg,#0c1220 0%,#1a1a2e 50%,#16213e 100%)"
+      background: "var(--page-bg)"
     }}>
       <form onSubmit={submit} style={{
         width: "min(100%, 390px)", padding: 24, borderRadius: 8,
-        background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.1)"
+        background: "rgba(var(--ink),.04)", border: "1px solid rgba(var(--ink),.1)"
       }}>
         <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>行车油耗追踪</div>
-        <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 22 }}>
+        <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 22 }}>
           {mode === "reset" ? "输入注册邮箱，我们会发送密码重置链接" : "登录后在电脑和手机间同步记录"}
         </div>
 
@@ -66,40 +66,40 @@ export default function AuthScreen({ authReady, onSignIn, onSignUp, onPasswordRe
               style={{
                 padding: 9, borderRadius: 7, cursor: "pointer", fontSize: 13, fontWeight: 700,
                 border: mode === item.key ? "1px solid rgba(96,165,250,.4)" : "1px solid transparent",
-                background: mode === item.key ? "rgba(59,130,246,.18)" : "rgba(255,255,255,.03)",
-                color: mode === item.key ? "#60a5fa" : "#94a3b8"
+                background: mode === item.key ? "rgba(59,130,246,.18)" : "rgba(var(--ink),.03)",
+                color: mode === item.key ? "var(--blue)" : "var(--muted)"
               }}>
               {item.label}
             </button>
           ))}
         </div>}
 
-        <label style={{ display: "block", fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>邮箱</label>
+        <label style={{ display: "block", fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>邮箱</label>
         <input type="email" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)}
           style={{
             width: "100%", boxSizing: "border-box", marginBottom: 14, padding: "11px 12px",
-            borderRadius: 7, border: "1px solid rgba(255,255,255,.12)",
-            background: "rgba(255,255,255,.06)", color: "#e2e8f0", fontSize: 14
+            borderRadius: 7, border: "1px solid rgba(var(--ink),.12)",
+            background: "rgba(var(--ink),.06)", color: "var(--text)", fontSize: 14
           }} />
 
         {mode !== "reset" && <>
-          <label style={{ display: "block", fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>密码</label>
+          <label style={{ display: "block", fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>密码</label>
           <input type="password" autoComplete={mode === "signin" ? "current-password" : "new-password"}
             value={password} onChange={event => setPassword(event.target.value)}
             style={{
               width: "100%", boxSizing: "border-box", marginBottom: 10, padding: "11px 12px",
-              borderRadius: 7, border: "1px solid rgba(255,255,255,.12)",
-              background: "rgba(255,255,255,.06)", color: "#e2e8f0", fontSize: 14
+              borderRadius: 7, border: "1px solid rgba(var(--ink),.12)",
+              background: "rgba(var(--ink),.06)", color: "var(--text)", fontSize: 14
             }} />
           {mode === "signin" && <button type="button" onClick={() => { setMode("reset"); setPassword(""); setMessage(""); }}
-            style={{ display: "block", margin: "0 0 16px auto", padding: 0, border: "none", background: "transparent", color: "#60a5fa", fontSize: 12, cursor: "pointer" }}>
+            style={{ display: "block", margin: "0 0 16px auto", padding: 0, border: "none", background: "transparent", color: "var(--blue)", fontSize: 12, cursor: "pointer" }}>
             忘记密码
           </button>}
         </>}
 
         {message && <div style={{
           padding: "9px 11px", borderRadius: 7, marginBottom: 14, fontSize: 12, lineHeight: 1.6,
-          background: "rgba(96,165,250,.09)", border: "1px solid rgba(96,165,250,.18)", color: "#bfdbfe"
+          background: "rgba(96,165,250,.09)", border: "1px solid rgba(96,165,250,.18)", color: "var(--blue-t)"
         }}>{message}</div>}
 
         <button type="submit" disabled={busy || !authReady}
@@ -112,7 +112,7 @@ export default function AuthScreen({ authReady, onSignIn, onSignUp, onPasswordRe
         </button>
 
         {mode === "reset" && <button type="button" onClick={() => { setMode("signin"); setMessage(""); }}
-          style={{ width: "100%", marginTop: 10, padding: 8, border: "none", background: "transparent", color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>
+          style={{ width: "100%", marginTop: 10, padding: 8, border: "none", background: "transparent", color: "var(--muted)", fontSize: 12, cursor: "pointer" }}>
           返回登录
         </button>}
       </form>

@@ -27,7 +27,7 @@ export default function AutoComplete({ value, onChange, options, placeholder, la
       {open && list.length > 0 && (
         <div style={{
           position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100,
-          background: "#1e293b", border: "1px solid #334155", borderRadius: 10,
+          background: "var(--pop-bg)", border: "1px solid var(--pop-border)", borderRadius: 10,
           maxHeight: 200, overflowY: "auto", marginTop: 4, boxShadow: "0 8px 32px rgba(0,0,0,.5)"
         }}>
           {list.map((option, i) => (
@@ -35,8 +35,8 @@ export default function AutoComplete({ value, onChange, options, placeholder, la
               style={{
                 padding: "9px 14px", fontSize: 13, cursor: "pointer",
                 background: option === value ? "rgba(59,130,246,.15)" : "transparent",
-                color: option === value ? "#60a5fa" : "#e2e8f0",
-                borderBottom: i < list.length - 1 ? "1px solid rgba(255,255,255,.04)" : "none"
+                color: option === value ? "var(--blue)" : "var(--text)",
+                borderBottom: i < list.length - 1 ? "1px solid rgba(var(--ink),.04)" : "none"
               }}
               onMouseEnter={e => { e.currentTarget.style.background = "rgba(59,130,246,.1)"; }}
               onMouseLeave={e => { e.currentTarget.style.background = option === value ? "rgba(59,130,246,.15)" : "transparent"; }}

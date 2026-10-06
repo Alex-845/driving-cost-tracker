@@ -29,14 +29,14 @@ export default function ConfirmDialog({ dialog, onClose }) {
     <div role="dialog" aria-modal="true" aria-label={title}
       style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(2,6,23,.72)", display: "grid", placeItems: "center", padding: 16 }}
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ width: "100%", maxWidth: 460, background: "#111827", border: `1px solid ${danger ? "rgba(239,68,68,.4)" : "rgba(148,163,184,.25)"}`, borderRadius: 16, padding: 22, color: "#e2e8f0", maxHeight: "90vh", overflowY: "auto" }}>
-        <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 12, color: danger ? "#fca5a5" : "#e2e8f0" }}>{title}</div>
-        <div style={{ fontSize: 13, lineHeight: 1.8, color: "#cbd5e1" }}>{body}</div>
+      <div style={{ width: "100%", maxWidth: 460, background: "var(--pop-bg)", border: `1px solid ${danger ? "rgba(239,68,68,.4)" : "rgba(148,163,184,.25)"}`, borderRadius: 16, padding: 22, color: "var(--text)", maxHeight: "90vh", overflowY: "auto" }}>
+        <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 12, color: danger ? "var(--red-t)" : "var(--text)" }}>{title}</div>
+        <div style={{ fontSize: 13, lineHeight: 1.8, color: "var(--text2)" }}>{body}</div>
         {requireText && (
           <div style={{ marginTop: 14 }}>
-            <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>请输入“{requireText}”以确认：</div>
+            <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>请输入“{requireText}”以确认：</div>
             <input value={typed} onChange={e => setTyped(e.target.value)} autoFocus aria-label="确认文字"
-              style={{ width: "100%", boxSizing: "border-box", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.18)", color: "#e2e8f0", padding: "9px 12px", borderRadius: 8, fontSize: 14, outline: "none" }} />
+              style={{ width: "100%", boxSizing: "border-box", background: "rgba(var(--ink),.06)", border: "1px solid rgba(var(--ink),.18)", color: "var(--text)", padding: "9px 12px", borderRadius: 8, fontSize: 14, outline: "none" }} />
           </div>
         )}
         {!hideActions && <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 18, flexWrap: "wrap" }}>

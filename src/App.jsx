@@ -7,7 +7,7 @@ import ConfirmDialog from "./components/ConfirmDialog";
 import DashboardTab from "./components/DashboardTab";
 import RecordsTab from "./components/RecordsTab";
 import SafetyPanel from "./components/SafetyPanel";
-import { boxStyle as boxS, mutedButton, pageBackground, pageFont } from "./components/styles";
+import { boxStyle as boxS, glassStyle, monoFont, mutedButton, pageBackground, pageFont } from "./components/styles";
 import { ETC_STORAGE_KEY, FORM_FIELDS, IGNORED_ISSUES_KEY, ISSUE_TYPE_COLORS, ISSUE_TYPES, ROUTE_NAME_RULES_KEY, STORAGE_KEY, TAB_LABELS, TABS } from "./config/appConfig";
 import { detectDataIssues, getRouteNameGroups, issueKeysForRecordId } from "./lib/dataQuality";
 import { buildRecordFromForm, calcRecord, emptyForm, getFormPreview, getInputWarnings, getNextId, recordToForm, validateRecordInput } from "./lib/drivingMath";
@@ -30,6 +30,13 @@ export default function App() {
   const [form, setForm] = useState(emptyForm());
   const [editId, setEditId] = useState(null);
   const [toast, setToast] = useState("");
+  const [theme, setTheme] = useState(() => (document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark"));
+  const toggleTheme = useCallback(() => {
+    const next = theme === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("driving-theme-v1", next); } catch { /* 无法记住也不影响使用 */ }
+    setTheme(next);
+  }, [theme]);
   const [ignoredIssues, setIgnoredIssues] = useState(new Set());
   const [editingIssue, setEditingIssue] = useState(null);
   const [editHwValue, setEditHwValue] = useState("");
@@ -309,9 +316,9 @@ export default function App() {
             <div>文件：{file.name}{parsed.exportedAt ? `（导出于 ${new Date(parsed.exportedAt).toLocaleString("zh-CN")}）` : ""}</div>
             <div style={{ margin: "8px 0" }}>当前：<b>{countsText(current)}</b><br />备份：<b>{countsText(incoming)}</b></div>
             {(incoming.records < current.records || incoming.etcRecords < current.etcRecords) && (
-              <div style={{ color: "#fbbf24" }}>⚠ 备份里的记录比当前更少，导出备份之后新增的数据会被替换掉。</div>
+              <div style={{ color: "var(--amber-t)" }}>⚠ 备份里的记录比当前更少，导出备份之后新增的数据会被替换掉。</div>
             )}
-            {parsed.warnings.map(w => <div key={w} style={{ color: "#fbbf24" }}>⚠ {w}</div>)}
+            {parsed.warnings.map(w => <div key={w} style={{ color: "var(--amber-t)" }}>⚠ {w}</div>)}
             <div style={{ marginTop: 8 }}>确认后会先下载当前数据的备份并保存浏览器内恢复点。</div>
           </div>
         ),
@@ -325,7 +332,7 @@ export default function App() {
       setDialog({
         title: "备份文件无法恢复",
         confirmLabel: "知道了",
-        body: <div style={{ color: "#fca5a5" }}>{error.message || "备份恢复失败"}<br /><span style={{ color: "#94a3b8" }}>当前数据没有任何改动。</span></div>,
+        body: <div style={{ color: "var(--red-t)" }}>{error.message || "备份恢复失败"}<br /><span style={{ color: "var(--muted)" }}>当前数据没有任何改动。</span></div>,
         onConfirm: () => {}
       });
     }
@@ -426,14 +433,14 @@ export default function App() {
     });
   };
 
-  const centered = { minHeight: "100vh", display: "grid", placeItems: "center", padding: 20, color: "#cbd5e1", fontFamily: pageFont, background: pageBackground };
+  const centered = { minHeight: "100vh", display: "grid", placeItems: "center", padding: 20, color: "var(--text2)", fontFamily: pageFont, background: pageBackground };
 
   if (cloud.configured && !cloud.authReady) {
     return (
       <div style={centered}>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>行车油耗追踪</div>
-          <div style={{ fontSize: 13, color: "#94a3b8" }}>{cloud.syncStatus}</div>
+          <div style={{ fontSize: 13, color: "var(--muted)" }}>{cloud.syncStatus}</div>
         </div>
       </div>
     );
@@ -448,9 +455,9 @@ export default function App() {
       <div style={centered}>
         <div style={{ textAlign: "center", maxWidth: 420 }}>
           <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>行车油耗追踪</div>
-          <div style={{ fontSize: 13, color: cloud.loadFailed ? "#fca5a5" : "#94a3b8" }}>{cloud.syncStatus}</div>
+          <div style={{ fontSize: 13, color: cloud.loadFailed ? "var(--red-t)" : "var(--muted)" }}>{cloud.syncStatus}</div>
           {cloud.loadFailed && (
-            <div style={{ marginTop: 12, fontSize: 12, lineHeight: 1.8, color: "#94a3b8" }}>
+            <div style={{ marginTop: 12, fontSize: 12, lineHeight: 1.8, color: "var(--muted)" }}>
               无法读取云端数据（{cloud.syncError || "网络或后台不可用"}）。这不代表数据丢失，也不一定是密码问题：后台可能被暂停或网络暂时不通。
               <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 14, flexWrap: "wrap" }}>
                 <button type="button" style={mutedButton} onClick={cloud.retryNow}>重试</button>
@@ -469,36 +476,43 @@ export default function App() {
   }
 
   const statusColor = cloud.syncStatus === SYNC_STATUS.failed || cloud.syncStatus === SYNC_STATUS.conflict
-    ? "#fca5a5"
-    : cloud.syncStatus === SYNC_STATUS.synced ? "#86efac" : "#94a3b8";
+    ? "var(--red-t)"
+    : cloud.syncStatus === SYNC_STATUS.synced ? "var(--green-t)" : "var(--muted)";
   const canRetry = cloud.syncStatus === SYNC_STATUS.failed;
-  const headerButton = { background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", color: "#94a3b8", padding: "6px 10px", borderRadius: 7, fontSize: 11, cursor: "pointer" };
+  const headerButton = { background: "rgba(var(--ink),.05)", border: "1px solid rgba(var(--ink),.1)", color: "var(--muted)", padding: "6px 10px", borderRadius: 7, fontSize: 11, cursor: "pointer" };
 
   return (
-    <div style={{ fontFamily: pageFont, background: pageBackground, minHeight: "100vh", color: "#e2e8f0" }}>
-      {toast && <div role="status" style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", background: "#10b981", color: "#fff", padding: "10px 28px", borderRadius: 10, fontSize: 14, fontWeight: 600, zIndex: 999, boxShadow: "0 4px 20px rgba(16,185,129,.4)", animation: "fadeIn .2s", maxWidth: "90vw" }}>{toast}</div>}
+    <div style={{ fontFamily: pageFont, background: pageBackground, minHeight: "100vh", color: "var(--text)", position: "relative", overflow: "hidden" }}>
+      <div aria-hidden="true" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, background: "var(--aurora)" }} />
+      {toast && <div role="status" style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", background: "var(--green)", color: "#fff", padding: "10px 28px", borderRadius: 10, fontSize: 14, fontWeight: 600, zIndex: 999, boxShadow: "0 4px 20px rgba(16,185,129,.4)", animation: "fadeIn .2s", maxWidth: "90vw" }}>{toast}</div>}
 
-      <div style={{ background: "rgba(255,255,255,.03)", borderBottom: "1px solid rgba(255,255,255,.06)", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", backdropFilter: "blur(10px)", position: "sticky", top: 0, zIndex: 50, gap: 8, flexWrap: "wrap" }}>
+      <div style={{ background: "var(--header-bg)", borderBottom: "1px solid rgba(var(--ink),.08)", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", position: "sticky", top: 0, zIndex: 50, gap: 8, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#3b82f6,#8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>⛽</div>
-          <div><div style={{ fontSize: 17, fontWeight: 700 }}>行车油耗追踪</div><div style={{ fontSize: 11, color: "#64748b" }}>Driving Cost Tracker</div></div>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#3b82f6,var(--violet))", display: "flex", alignItems: "center", justifyContent: "center", }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 20V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v14" /><path d="M3 20h12" /><path d="M14 9h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3" /><path d="M7 8h4" /></svg></div>
+          <div><div style={{ fontSize: 17, fontWeight: 700, letterSpacing: ".04em" }}>行车油耗追踪</div><div style={{ fontSize: 10, color: "var(--faint)", fontFamily: monoFont, letterSpacing: ".14em" }}>DRIVING COST TRACKER</div></div>
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6, flexWrap: "wrap" }}>
           <span title={cloud.syncError || cloud.syncStatus} data-testid="sync-status" onClick={canRetry ? cloud.retryNow : undefined} style={{
             padding: "5px 9px", borderRadius: 7, fontSize: 11, color: statusColor, cursor: canRetry ? "pointer" : "default",
-            background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.08)"
+            background: "rgba(var(--ink),.04)", border: "1px solid rgba(var(--ink),.08)"
           }}>{cloud.syncStatus}{canRetry ? "（点击重试）" : ""}</span>
-          <button onClick={handleBackupExport} style={{ background: "rgba(59,130,246,.12)", border: "1px solid rgba(59,130,246,.22)", color: "#93c5fd", padding: "6px 10px", borderRadius: 7, fontSize: 11, cursor: "pointer" }}>导出备份</button>
+          <button onClick={handleBackupExport} style={{ background: "rgba(59,130,246,.12)", border: "1px solid rgba(59,130,246,.22)", color: "var(--blue-t)", padding: "6px 10px", borderRadius: 7, fontSize: 11, cursor: "pointer" }}>导出备份</button>
           <input ref={backupInputRef} type="file" accept=".json,application/json" style={{ display: "none" }} onChange={handleBackupImport} />
-          <button onClick={() => backupInputRef.current?.click()} style={{ background: "rgba(16,185,129,.1)", border: "1px solid rgba(16,185,129,.2)", color: "#86efac", padding: "6px 10px", borderRadius: 7, fontSize: 11, cursor: "pointer" }}>恢复备份</button>
+          <button onClick={() => backupInputRef.current?.click()} style={{ background: "rgba(16,185,129,.1)", border: "1px solid rgba(16,185,129,.2)", color: "var(--green-t)", padding: "6px 10px", borderRadius: 7, fontSize: 11, cursor: "pointer" }}>恢复备份</button>
+          <button type="button" onClick={toggleTheme} aria-label={theme === "light" ? "切换到夜间模式" : "切换到日间模式"} title={theme === "light" ? "夜间模式" : "日间模式"} style={{ ...headerButton, display: "inline-flex", alignItems: "center", gap: 5 }}>
+            {theme === "light"
+              ? <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
+              : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>}
+            {theme === "light" ? "夜间" : "日间"}
+          </button>
           <button onClick={openSafetyPanel} style={headerButton}>恢复点</button>
           {cloud.session && <button onClick={cloud.signOut} style={headerButton}>退出</button>}
-          <button onClick={handleReset} style={{ ...headerButton, color: "#fca5a5", border: "1px solid rgba(239,68,68,.25)" }}>清空数据</button>
+          <button onClick={handleReset} style={{ ...headerButton, color: "var(--red-t)", border: "1px solid rgba(239,68,68,.25)" }}>清空数据</button>
         </div>
       </div>
 
       {cloud.conflict && (
-        <div role="alert" style={{ padding: "12px 20px", background: "rgba(239,68,68,.12)", borderBottom: "1px solid rgba(239,68,68,.3)", fontSize: 13, color: "#fecaca", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+        <div role="alert" style={{ padding: "12px 20px", background: "rgba(239,68,68,.12)", borderBottom: "1px solid rgba(239,68,68,.3)", fontSize: 13, color: "var(--red-t)", display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
           <span>另一台设备更新过云端数据，为避免互相覆盖，自动同步已暂停。请选择以哪一份为准（选择前会先下载备份）：</span>
           <button type="button" style={mutedButton} onClick={() => resolveConflictWith("cloud")}>载入云端版本</button>
           <button type="button" style={mutedButton} onClick={() => resolveConflictWith("local")}>用本机覆盖云端</button>
@@ -506,17 +520,20 @@ export default function App() {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(105px,1fr))", gap: 4, padding: "10px 20px", background: "rgba(0,0,0,.15)" }}>
-        {TABS.map(t => (
-          <button key={t} onClick={() => { setTab(t); if (t !== "add") { setEditId(null); setForm(emptyForm()); } }}
-            style={{ minWidth: 0, padding: "10px 0", borderRadius: 10, border: "none", background: tab === t ? "linear-gradient(135deg,#3b82f6,#6366f1)" : "rgba(255,255,255,.04)", color: tab === t ? "#fff" : "#94a3b8", fontSize: 13, fontWeight: tab === t ? 700 : 500, cursor: "pointer", position: "relative", whiteSpace: "nowrap" }}>
-            {TAB_LABELS[t]}
-            {t === "check" && issueCount > 0 && <span style={{ position: "absolute", top: 3, right: 6, background: "#ef4444", color: "#fff", borderRadius: 20, padding: "1px 6px", fontSize: 10, fontWeight: 700 }}>{issueCount}</span>}
-          </button>
-        ))}
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 1040, margin: "0 auto", padding: "14px 20px 0", boxSizing: "border-box" }}>
+        <div style={{ ...glassStyle, borderRadius: 14, display: "flex", overflowX: "auto", boxShadow: "0 8px 30px rgba(0,0,0,.2)" }}>
+          {TABS.map((t, i) => (
+            <button key={t} onClick={() => { setTab(t); if (t !== "add") { setEditId(null); setForm(emptyForm()); } }}
+              aria-current={tab === t ? "page" : undefined}
+              style={{ flex: "1 0 auto", minWidth: 92, padding: "12px 14px", border: "none", borderLeft: i ? "1px solid rgba(var(--ink),.07)" : "none", background: tab === t ? "var(--tab-on)" : "transparent", color: tab === t ? "#fff" : "var(--muted)", fontSize: 13, fontWeight: tab === t ? 700 : 500, cursor: "pointer", position: "relative", whiteSpace: "nowrap" }}>
+              {TAB_LABELS[t]}
+              {t === "check" && issueCount > 0 && <span style={{ position: "absolute", top: 4, right: 6, background: "var(--red)", color: "#fff", borderRadius: 20, padding: "1px 6px", fontSize: 10, fontWeight: 700 }}>{issueCount}</span>}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div style={{ padding: "16px 20px", maxWidth: 920, margin: "0 auto" }}>
+      <div style={{ position: "relative", zIndex: 1, padding: "16px 20px 40px", maxWidth: 1040, margin: "0 auto", boxSizing: "border-box" }}>
 
         {tab === "dashboard" && <DashboardTab records={enriched} />}
 
@@ -528,22 +545,22 @@ export default function App() {
         {tab === "add" && (<div style={{ ...boxS, padding: 24 }}>
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>{editId ? "编辑记录" : "新增行程记录"}</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-            <div><label style={{ display: "block", fontSize: 12, color: "#94a3b8", marginBottom: 6, fontWeight: 600 }}>日期 *</label><input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} style={{ width: "100%", boxSizing: "border-box", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)", color: "#e2e8f0", padding: "10px 12px", borderRadius: 10, fontSize: 14, outline: "none" }} /></div>
+            <div><label style={{ display: "block", fontSize: 12, color: "var(--muted)", marginBottom: 6, fontWeight: 600 }}>日期 *</label><input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} style={{ width: "100%", boxSizing: "border-box", background: "rgba(var(--ink),.06)", border: "1px solid rgba(var(--ink),.12)", color: "var(--text)", padding: "10px 12px", borderRadius: 10, fontSize: 14, outline: "none" }} /></div>
             <AutoComplete value={form.from} onChange={v => setForm({ ...form, from: v })} options={placeOpts} placeholder="如：楚雄" label="出发地 *" />
             <AutoComplete value={form.to} onChange={v => setForm({ ...form, to: v })} options={placeOpts} placeholder="如：昆明" label="目的地 *" />
             <AutoComplete value={form.highway} onChange={v => setForm({ ...form, highway: v })} options={hwOpts} placeholder="如：杭瑞" label="路线/高速" />
             {FORM_FIELDS.map(f => (
-              <div key={f.k}><label style={{ display: "block", fontSize: 12, color: "#94a3b8", marginBottom: 6, fontWeight: 600 }}>{f.l}</label><input type="number" step="0.01" value={form[f.k]} onChange={e => setForm({ ...form, [f.k]: e.target.value })} placeholder={f.p} style={{ width: "100%", boxSizing: "border-box", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)", color: "#e2e8f0", padding: "10px 12px", borderRadius: 10, fontSize: 14, outline: "none" }} /></div>
+              <div key={f.k}><label style={{ display: "block", fontSize: 12, color: "var(--muted)", marginBottom: 6, fontWeight: 600 }}>{f.l}</label><input type="number" step="0.01" value={form[f.k]} onChange={e => setForm({ ...form, [f.k]: e.target.value })} placeholder={f.p} style={{ width: "100%", boxSizing: "border-box", background: "rgba(var(--ink),.06)", border: "1px solid rgba(var(--ink),.12)", color: "var(--text)", padding: "10px 12px", borderRadius: 10, fontSize: 14, outline: "none" }} /></div>
             ))}
           </div>
 
           {duplicateOfForm && (
-            <div role="alert" style={{ marginTop: 14, padding: 10, borderRadius: 10, background: "rgba(249,115,22,.1)", border: "1px solid rgba(249,115,22,.25)", fontSize: 12, color: "#fdba74" }}>
+            <div role="alert" style={{ marginTop: 14, padding: 10, borderRadius: 10, background: "rgba(249,115,22,.1)", border: "1px solid rgba(249,115,22,.25)", fontSize: 12, color: "var(--orange-t)" }}>
               ⚠ 已有日期、起终点、里程、路线都相同的记录 #{duplicateOfForm.id}。如果这不是同一天的往返，请不要重复保存。
             </div>
           )}
           {formWarnings.map(w => (
-            <div key={w} style={{ marginTop: 10, padding: 8, borderRadius: 8, background: "rgba(234,179,8,.08)", border: "1px solid rgba(234,179,8,.2)", fontSize: 12, color: "#fde047" }}>⚠ {w}</div>
+            <div key={w} style={{ marginTop: 10, padding: 8, borderRadius: 8, background: "rgba(234,179,8,.08)", border: "1px solid rgba(234,179,8,.2)", fontSize: 12, color: "var(--amber-t)" }}>⚠ {w}</div>
           ))}
 
           {/* History hint */}
@@ -553,13 +570,13 @@ export default function App() {
             const last = [...prev].sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id)[prev.length - 1];
             const avgD = +(prev.reduce((s, r) => s + r.distance, 0) / prev.length).toFixed(1);
             return (<div style={{ marginTop: 14, padding: 12, borderRadius: 10, background: "rgba(139,92,246,.08)", border: "1px solid rgba(139,92,246,.15)" }}>
-              <div style={{ fontSize: 12, color: "#a78bfa", fontWeight: 600, marginBottom: 6 }}>历史参考（{form.from.trim()}→{form.to.trim()} 共 {prev.length} 次）</div>
-              <div style={{ display: "flex", gap: 14, fontSize: 12, color: "#c4b5fd", flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ fontSize: 12, color: "var(--violet-t)", fontWeight: 600, marginBottom: 6 }}>历史参考（{form.from.trim()}→{form.to.trim()} 共 {prev.length} 次）</div>
+              <div style={{ display: "flex", gap: 14, fontSize: 12, color: "var(--violet-t)", flexWrap: "wrap", alignItems: "center" }}>
                 <span>均里程: {avgD}km</span>
                 <span>上次路线: {last.highway || "无"}</span>
                 <span>上次油耗: {last.consumption}L</span>
-                {!form.highway && last.highway && <button onClick={() => setForm({ ...form, highway: last.highway })} style={{ background: "rgba(139,92,246,.2)", border: "1px solid rgba(139,92,246,.3)", color: "#a78bfa", borderRadius: 6, padding: "2px 10px", fontSize: 11, cursor: "pointer" }}>用上次路线</button>}
-                {!form.distance && <button onClick={() => setForm({ ...form, distance: String(avgD) })} style={{ background: "rgba(139,92,246,.2)", border: "1px solid rgba(139,92,246,.3)", color: "#a78bfa", borderRadius: 6, padding: "2px 10px", fontSize: 11, cursor: "pointer" }}>用均里程</button>}
+                {!form.highway && last.highway && <button onClick={() => setForm({ ...form, highway: last.highway })} style={{ background: "rgba(139,92,246,.2)", border: "1px solid rgba(139,92,246,.3)", color: "var(--violet-t)", borderRadius: 6, padding: "2px 10px", fontSize: 11, cursor: "pointer" }}>用上次路线</button>}
+                {!form.distance && <button onClick={() => setForm({ ...form, distance: String(avgD) })} style={{ background: "rgba(139,92,246,.2)", border: "1px solid rgba(139,92,246,.3)", color: "var(--violet-t)", borderRadius: 6, padding: "2px 10px", fontSize: 11, cursor: "pointer" }}>用均里程</button>}
               </div>
             </div>);
           })()}
@@ -568,19 +585,19 @@ export default function App() {
             const preview = getFormPreview(form);
             if (!preview) return null;
             return (<div style={{ marginTop: 14, padding: 14, borderRadius: 12, background: "rgba(59,130,246,.08)", border: "1px solid rgba(59,130,246,.15)" }}>
-              <div style={{ fontSize: 12, color: "#60a5fa", fontWeight: 600, marginBottom: 8 }}>自动计算预览</div>
+              <div style={{ fontSize: 12, color: "var(--blue)", fontWeight: 600, marginBottom: 8 }}>自动计算预览</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, fontSize: 13 }}>
-                <div>油费：<span style={{ color: "#f97316", fontWeight: 700 }}>¥{preview.fuelCost.toFixed(2)}</span></div>
-                <div>总费用：<span style={{ color: "#ef4444", fontWeight: 700 }}>¥{preview.totalCost.toFixed(2)}</span></div>
-                <div>净支出：<span style={{ color: preview.netSpend > 0 ? "#f43f5e" : "#10b981", fontWeight: 700 }}>¥{preview.netSpend.toFixed(2)}</span></div>
-                <div>每公里：<span style={{ color: "#8b5cf6", fontWeight: 700 }}>¥{preview.costPerKm.toFixed(3)}</span></div>
+                <div>油费：<span style={{ color: "var(--orange)", fontWeight: 700 }}>¥{preview.fuelCost.toFixed(2)}</span></div>
+                <div>总费用：<span style={{ color: "var(--red)", fontWeight: 700 }}>¥{preview.totalCost.toFixed(2)}</span></div>
+                <div>净支出：<span style={{ color: preview.netSpend > 0 ? "var(--rose)" : "var(--green)", fontWeight: 700 }}>¥{preview.netSpend.toFixed(2)}</span></div>
+                <div>每公里：<span style={{ color: "var(--violet)", fontWeight: 700 }}>¥{preview.costPerKm.toFixed(3)}</span></div>
               </div>
             </div>);
           })()}
 
           <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
             <button onClick={handleSubmit} style={{ flex: 1, padding: "12px 0", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#3b82f6,#6366f1)", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>{editId ? "保存修改" : "添加记录"}</button>
-            {editId && <button onClick={() => { setEditId(null); setForm(emptyForm()); }} style={{ padding: "12px 24px", borderRadius: 12, background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", color: "#94a3b8", fontSize: 14, cursor: "pointer" }}>取消</button>}
+            {editId && <button onClick={() => { setEditId(null); setForm(emptyForm()); }} style={{ padding: "12px 24px", borderRadius: 12, background: "rgba(var(--ink),.06)", border: "1px solid rgba(var(--ink),.1)", color: "var(--muted)", fontSize: 14, cursor: "pointer" }}>取消</button>}
           </div>
         </div>)}
 
@@ -588,13 +605,13 @@ export default function App() {
         {tab === "etc" && (<div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 10, marginBottom: 16 }}>
             {[
-              { l: "通行记录", v: etcSummary.recordCount + " 条", c: "#60a5fa" },
-              { l: "其中 0 元记录", v: etcSummary.zeroCount + " 条", c: "#fbbf24" },
-              { l: "入口/出口组合", v: etcSummary.routeCount + " 组", c: "#f97316" },
-              { l: "去重收费项", v: etcSummary.fareCount + " 项", c: "#a78bfa" }
+              { l: "通行记录", v: etcSummary.recordCount + " 条", c: "var(--blue)" },
+              { l: "其中 0 元记录", v: etcSummary.zeroCount + " 条", c: "var(--amber-t)" },
+              { l: "入口/出口组合", v: etcSummary.routeCount + " 组", c: "var(--orange)" },
+              { l: "去重收费项", v: etcSummary.fareCount + " 项", c: "var(--violet-t)" }
             ].map((x, i) => (
-              <div key={i} style={{ background: "rgba(255,255,255,.04)", borderRadius: 14, padding: "14px 14px", border: "1px solid rgba(255,255,255,.06)" }}>
-                <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 6 }}>{x.l}</div>
+              <div key={i} style={{ background: "rgba(var(--ink),.04)", borderRadius: 14, padding: "14px 14px", border: "1px solid rgba(var(--ink),.06)" }}>
+                <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 6 }}>{x.l}</div>
                 <div style={{ fontSize: 19, fontWeight: 800, color: x.c }}>{x.v}</div>
               </div>
             ))}
@@ -608,41 +625,41 @@ export default function App() {
             </div>
             <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
               <button onClick={() => { const oldEntry = etcEntry; setEtcEntry(etcExit); setEtcExit(oldEntry); }}
-                style={{ background: "rgba(96,165,250,.14)", border: "1px solid rgba(96,165,250,.25)", color: "#60a5fa", padding: "7px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                style={{ background: "rgba(96,165,250,.14)", border: "1px solid rgba(96,165,250,.25)", color: "var(--blue)", padding: "7px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
                 入口出口互换
               </button>
               <button onClick={() => { setEtcEntry(""); setEtcExit(""); }}
-                style={{ background: "rgba(100,116,139,.12)", border: "1px solid rgba(100,116,139,.22)", color: "#94a3b8", padding: "7px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                style={{ background: "rgba(100,116,139,.12)", border: "1px solid rgba(100,116,139,.22)", color: "var(--muted)", padding: "7px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
                 清空
               </button>
-              <label style={{ alignSelf: "center", fontSize: 12, color: "#94a3b8", display: "inline-flex", gap: 6, alignItems: "center", cursor: "pointer" }}>
+              <label style={{ alignSelf: "center", fontSize: 12, color: "var(--muted)", display: "inline-flex", gap: 6, alignItems: "center", cursor: "pointer" }}>
                 <input type="checkbox" checked={etcHideFree} onChange={e => setEtcHideFree(e.target.checked)} />隐藏 0 元记录
               </label>
-              <span style={{ alignSelf: "center", fontSize: 12, color: "#64748b" }}>当前匹配 {visibleEtcFares.length} 个去重收费项</span>
+              <span style={{ alignSelf: "center", fontSize: 12, color: "var(--faint)" }}>当前匹配 {visibleEtcFares.length} 个去重收费项</span>
             </div>
           </div>
 
           <div style={{ ...boxS, padding: 16 }}>
             <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>查询结果</div>
             {visibleEtcFares.length === 0 ? (
-              <div style={{ padding: 28, textAlign: "center", color: "#64748b", fontSize: 13 }}>没有匹配的 ETC 记录</div>
+              <div style={{ padding: 28, textAlign: "center", color: "var(--faint)", fontSize: 13 }}>没有匹配的 ETC 记录</div>
             ) : (
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, minWidth: 760 }}>
-                  <thead><tr style={{ borderBottom: "1px solid rgba(255,255,255,.1)" }}>
+                  <thead><tr style={{ borderBottom: "1px solid rgba(var(--ink),.1)" }}>
                     {["入口站", "出口站", "ETC金额", "出现次数", "最近入口时间", "最近出口时间", "来源序号"].map(h => (
-                      <th key={h} style={{ padding: "8px 6px", textAlign: "right", color: "#94a3b8", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
+                      <th key={h} style={{ padding: "8px 6px", textAlign: "right", color: "var(--muted)", fontWeight: 600, whiteSpace: "nowrap" }}>{h}</th>
                     ))}
                   </tr></thead>
                   <tbody>{visibleEtcFares.map((fare, i) => (
-                    <tr key={`${fare.entryStation}-${fare.exitStation}-${fare.amount}`} style={{ borderBottom: "1px solid rgba(255,255,255,.04)", background: i % 2 ? "rgba(255,255,255,.015)" : "transparent" }}>
+                    <tr key={`${fare.entryStation}-${fare.exitStation}-${fare.amount}`} style={{ borderBottom: "1px solid rgba(var(--ink),.04)", background: i % 2 ? "rgba(var(--ink),.015)" : "transparent" }}>
                       <td style={{ padding: "8px 6px", textAlign: "right" }}>{fare.entryLabel}</td>
                       <td style={{ padding: "8px 6px", textAlign: "right" }}>{fare.exitLabel}</td>
-                      <td style={{ padding: "8px 6px", textAlign: "right", color: "#10b981", fontSize: 15, fontWeight: 800 }}>¥{fare.amount.toFixed(2)}{fare.isFree && <span style={{ marginLeft: 6, fontSize: 10, color: "#fbbf24", fontWeight: 600 }}>免费/0元</span>}</td>
-                      <td style={{ padding: "8px 6px", textAlign: "right", color: fare.count > 1 ? "#f97316" : "#94a3b8", fontWeight: fare.count > 1 ? 700 : 500 }}>{fare.count}</td>
+                      <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--green)", fontSize: 15, fontWeight: 800 }}>¥{fare.amount.toFixed(2)}{fare.isFree && <span style={{ marginLeft: 6, fontSize: 10, color: "var(--amber-t)", fontWeight: 600 }}>免费/0元</span>}</td>
+                      <td style={{ padding: "8px 6px", textAlign: "right", color: fare.count > 1 ? "var(--orange)" : "var(--muted)", fontWeight: fare.count > 1 ? 700 : 500 }}>{fare.count}</td>
                       <td style={{ padding: "8px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{fare.latestRecord.entryTime}</td>
                       <td style={{ padding: "8px 6px", textAlign: "right", whiteSpace: "nowrap" }}>{fare.latestRecord.exitTime}</td>
-                      <td style={{ padding: "8px 6px", textAlign: "right", color: "#64748b" }}>#{fare.records.map(r => r.sourceNo).join(", #")}</td>
+                      <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--faint)" }}>#{fare.records.map(r => r.sourceNo).join(", #")}</td>
                     </tr>
                   ))}</tbody>
                 </table>
@@ -668,28 +685,28 @@ export default function App() {
         {/* ═══ DATA CHECK ═══ */}
         {tab === "check" && (<div>
           <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>数据一致性排查</div>
-          <div style={{ fontSize: 12, color: "#64748b", marginBottom: 18 }}>按起点→终点归组，检查路线命名、空格、里程偏差、疑似重复、同日重叠行程和数值异常。路线名称只在你确认后才会批量统一；删除记录前会自动保存恢复点。</div>
+          <div style={{ fontSize: 12, color: "var(--faint)", marginBottom: 18 }}>按起点→终点归组，检查路线命名、空格、里程偏差、疑似重复、同日重叠行程和数值异常。路线名称只在你确认后才会批量统一；删除记录前会自动保存恢复点。</div>
 
           {routeNameGroups.length > 0 && (
             <div style={{ ...boxS, padding: 16, marginBottom: 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#f97316" }}>路线命名统一</div>
-                <div style={{ fontSize: 12, color: "#fdba74" }}>待处理 {routeNameGroups.length} 组</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--orange)" }}>路线命名统一</div>
+                <div style={{ fontSize: 12, color: "var(--orange-t)" }}>待处理 {routeNameGroups.length} 组</div>
               </div>
-              <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.7, marginBottom: 4 }}>同一起终点可以保留多条真实路线；不完整或错误名称可以只修正对应记录。</div>
+              <div style={{ fontSize: 11, color: "var(--faint)", lineHeight: 1.7, marginBottom: 4 }}>同一起终点可以保留多条真实路线；不完整或错误名称可以只修正对应记录。</div>
 
               {routeNameGroups.map((group, groupIndex) => {
                 const selectedName = routeNameSelections[group.key] ?? group.suggestedName;
                 const suggestedLabel = group.names.find(item => item.name === group.suggestedName)?.label || "(无)";
                 return (
-                  <div key={group.key} style={{ padding: "16px 0", borderTop: "1px solid rgba(255,255,255,.07)" }}>
+                  <div key={group.key} style={{ padding: "16px 0", borderTop: "1px solid rgba(var(--ink),.07)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 700 }}>{group.route}</div>
-                        <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>{group.totalCount} 条记录</div>
+                        <div style={{ fontSize: 11, color: "var(--faint)", marginTop: 3 }}>{group.totalCount} 条记录</div>
                       </div>
                       <button type="button" onClick={() => acceptRouteNameGroup(group)}
-                        style={{ background: "rgba(59,130,246,.12)", border: "1px solid rgba(59,130,246,.25)", color: "#60a5fa", padding: "7px 11px", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                        style={{ background: "rgba(59,130,246,.12)", border: "1px solid rgba(59,130,246,.25)", color: "var(--blue)", padding: "7px 11px", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
                         确认当前多条路线都有效
                       </button>
                     </div>
@@ -699,31 +716,31 @@ export default function App() {
                         const active = selectedName === item.name;
                         return (
                           <button key={item.label} type="button" aria-pressed={active} onClick={() => setRouteNameSelections(current => ({ ...current, [group.key]: item.name }))}
-                            style={{ padding: "5px 10px", borderRadius: 7, cursor: "pointer", fontSize: 12, background: active ? "rgba(249,115,22,.2)" : "rgba(255,255,255,.04)", border: active ? "1px solid rgba(249,115,22,.4)" : "1px solid rgba(255,255,255,.09)", color: active ? "#fdba74" : "#cbd5e1" }}>
+                            style={{ padding: "5px 10px", borderRadius: 7, cursor: "pointer", fontSize: 12, background: active ? "rgba(249,115,22,.2)" : "rgba(var(--ink),.04)", border: active ? "1px solid rgba(249,115,22,.4)" : "1px solid rgba(var(--ink),.09)", color: active ? "var(--orange-t)" : "var(--text2)" }}>
                             {item.label} · {item.count}次
                           </button>
                         );
                       })}
                     </div>
 
-                    <div style={{ fontSize: 11, color: group.hasTopTie ? "#fbbf24" : "#64748b", marginTop: 9 }}>
+                    <div style={{ fontSize: 11, color: group.hasTopTie ? "var(--amber-t)" : "var(--faint)", marginTop: 9 }}>
                       {group.hasTopTie ? "最高次数并列，请手动确认统一名称。" : `最常用建议：${suggestedLabel}`}
                     </div>
 
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", marginTop: 14 }}>整组统一为一个名称</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", marginTop: 14 }}>整组统一为一个名称</div>
                     <div style={{ display: "grid", gridTemplateColumns: "minmax(160px,1fr) auto", gap: 8, marginTop: 8 }}>
                       <div>
-                        <label htmlFor={`route-name-${groupIndex}`} style={{ display: "block", fontSize: 11, color: "#94a3b8", marginBottom: 5 }}>统一命名为</label>
+                        <label htmlFor={`route-name-${groupIndex}`} style={{ display: "block", fontSize: 11, color: "var(--muted)", marginBottom: 5 }}>统一命名为</label>
                         <input id={`route-name-${groupIndex}`} type="text" value={selectedName} onChange={e => setRouteNameSelections(current => ({ ...current, [group.key]: e.target.value }))} placeholder="输入路线名，留空表示无高速"
-                          style={{ width: "100%", boxSizing: "border-box", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)", color: "#e2e8f0", padding: "9px 11px", borderRadius: 8, fontSize: 13, outline: "none" }} />
+                          style={{ width: "100%", boxSizing: "border-box", background: "rgba(var(--ink),.06)", border: "1px solid rgba(var(--ink),.12)", color: "var(--text)", padding: "9px 11px", borderRadius: 8, fontSize: 13, outline: "none" }} />
                       </div>
                       <button type="button" onClick={() => applyRouteNameGroup(group)}
-                        style={{ alignSelf: "end", background: "rgba(16,185,129,.16)", border: "1px solid rgba(16,185,129,.3)", color: "#10b981", padding: "9px 13px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+                        style={{ alignSelf: "end", background: "rgba(16,185,129,.16)", border: "1px solid rgba(16,185,129,.3)", color: "var(--green)", padding: "9px 13px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
                         统一这一组
                       </button>
                     </div>
 
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", marginTop: 16 }}>只修正某一个旧名称</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", marginTop: 16 }}>只修正某一个旧名称</div>
                     <datalist id={`route-options-${groupIndex}`}>
                       {group.names.map(item => <option key={item.label} value={item.label} />)}
                     </datalist>
@@ -731,26 +748,26 @@ export default function App() {
                       {group.names.map((item, itemIndex) => {
                         const selectionKey = `${group.key}::${item.label}`;
                         return (
-                          <div key={item.label} style={{ display: "flex", alignItems: "end", gap: 8, padding: "8px 0", borderTop: itemIndex ? "1px solid rgba(255,255,255,.05)" : "none", flexWrap: "wrap" }}>
+                          <div key={item.label} style={{ display: "flex", alignItems: "end", gap: 8, padding: "8px 0", borderTop: itemIndex ? "1px solid rgba(var(--ink),.05)" : "none", flexWrap: "wrap" }}>
                             <div style={{ minWidth: 130, flex: "0 1 160px" }}>
-                              <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>当前名称</div>
-                              <div style={{ fontSize: 12, color: "#e2e8f0" }}>{item.label} · {item.count}次</div>
+                              <div style={{ fontSize: 11, color: "var(--faint)", marginBottom: 4 }}>当前名称</div>
+                              <div style={{ fontSize: 12, color: "var(--text)" }}>{item.label} · {item.count}次</div>
                             </div>
                             <div style={{ minWidth: 160, flex: "1 1 190px" }}>
-                              <label htmlFor={`route-variant-${groupIndex}-${itemIndex}`} style={{ display: "block", fontSize: 11, color: "#94a3b8", marginBottom: 5 }}>仅将这些记录改为</label>
+                              <label htmlFor={`route-variant-${groupIndex}-${itemIndex}`} style={{ display: "block", fontSize: 11, color: "var(--muted)", marginBottom: 5 }}>仅将这些记录改为</label>
                               <input id={`route-variant-${groupIndex}-${itemIndex}`} list={`route-options-${groupIndex}`} type="text" value={routeVariantSelections[selectionKey] || ""}
                                 onChange={e => setRouteVariantSelections(current => ({ ...current, [selectionKey]: e.target.value }))} placeholder="输入或选择目标名称"
-                                style={{ width: "100%", boxSizing: "border-box", background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.12)", color: "#e2e8f0", padding: "8px 10px", borderRadius: 8, fontSize: 12, outline: "none" }} />
+                                style={{ width: "100%", boxSizing: "border-box", background: "rgba(var(--ink),.06)", border: "1px solid rgba(var(--ink),.12)", color: "var(--text)", padding: "8px 10px", borderRadius: 8, fontSize: 12, outline: "none" }} />
                             </div>
                             <button type="button" onClick={() => applyRouteVariantName(group, item)}
-                              style={{ background: "rgba(249,115,22,.12)", border: "1px solid rgba(249,115,22,.25)", color: "#fb923c", padding: "8px 11px", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
+                              style={{ background: "rgba(249,115,22,.12)", border: "1px solid rgba(249,115,22,.25)", color: "var(--orange)", padding: "8px 11px", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
                               仅修改这{item.count}条
                             </button>
                           </div>
                         );
                       })}
                     </div>
-                    <div style={{ fontSize: 10, color: "#64748b", marginTop: 5 }}>输入“(无)”可清空路线名称。修正错误名称后，确认剩余多条路线均有效即可。</div>
+                    <div style={{ fontSize: 10, color: "var(--faint)", marginTop: 5 }}>输入“(无)”可清空路线名称。修正错误名称后，确认剩余多条路线均有效即可。</div>
                   </div>
                 );
               })}
@@ -759,15 +776,15 @@ export default function App() {
 
           {acceptedRouteRules.length > 0 && (
             <div style={{ ...boxS, padding: 16, marginBottom: 14 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#60a5fa", marginBottom: 9 }}>已确认的多路线规则（{acceptedRouteRules.length}）</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--blue)", marginBottom: 9 }}>已确认的多路线规则（{acceptedRouteRules.length}）</div>
               {acceptedRouteRules.map(([route, names], index) => (
-                <div key={route} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", padding: "9px 0", borderTop: index ? "1px solid rgba(255,255,255,.05)" : "none" }}>
+                <div key={route} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", padding: "9px 0", borderTop: index ? "1px solid rgba(var(--ink),.05)" : "none" }}>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 700 }}>{route}</div>
-                    <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>{names.map(name => name || "(无)").join("、")}</div>
+                    <div style={{ fontSize: 11, color: "var(--faint)", marginTop: 3 }}>{names.map(name => name || "(无)").join("、")}</div>
                   </div>
                   <button type="button" onClick={() => reopenRouteNameRule(route)}
-                    style={{ background: "rgba(100,116,139,.1)", border: "1px solid rgba(100,116,139,.22)", color: "#94a3b8", padding: "6px 10px", borderRadius: 7, fontSize: 11, cursor: "pointer" }}>
+                    style={{ background: "rgba(100,116,139,.1)", border: "1px solid rgba(100,116,139,.22)", color: "var(--muted)", padding: "6px 10px", borderRadius: 7, fontSize: 11, cursor: "pointer" }}>
                     重新检查
                   </button>
                 </div>
@@ -778,8 +795,8 @@ export default function App() {
           {routeNameGroups.length === 0 && visibleIssues.length === 0 ? (
             <div style={{ ...boxS, padding: 40, textAlign: "center" }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: "#10b981" }}>无待处理问题</div>
-              <div style={{ fontSize: 13, color: "#64748b", marginTop: 6 }}>{ignoredCount > 0 ? `已忽略 ${ignoredCount} 项` : "未发现问题"}</div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: "var(--green)" }}>无待处理问题</div>
+              <div style={{ fontSize: 13, color: "var(--faint)", marginTop: 6 }}>{ignoredCount > 0 ? `已忽略 ${ignoredCount} 项` : "未发现问题"}</div>
             </div>
           ) : visibleIssues.length > 0 && (<div>
             {ISSUE_TYPES.map(type => {
@@ -790,43 +807,43 @@ export default function App() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ padding: "3px 10px", borderRadius: 6, fontSize: 12, fontWeight: 700, background: (ISSUE_TYPE_COLORS[type] || ISSUE_TYPE_COLORS.空格).bg, color: (ISSUE_TYPE_COLORS[type] || ISSUE_TYPE_COLORS.空格).fg }}>{type}</span>
-                    <span style={{ fontSize: 12, color: "#94a3b8" }}>{items.length} 个</span>
+                    <span style={{ fontSize: 12, color: "var(--muted)" }}>{items.length} 个</span>
                   </div>
                   <div style={{ display: "flex", gap: 6 }}>
-                    {fixable && <button onClick={() => applyAllFixes(type)} style={{ background: "rgba(16,185,129,.15)", border: "1px solid rgba(16,185,129,.25)", color: "#10b981", padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>全部修复</button>}
-                    <button onClick={() => ignoreAllOfType(type)} style={{ background: "rgba(100,116,139,.12)", border: "1px solid rgba(100,116,139,.2)", color: "#94a3b8", padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>全部忽略</button>
+                    {fixable && <button onClick={() => applyAllFixes(type)} style={{ background: "rgba(16,185,129,.15)", border: "1px solid rgba(16,185,129,.25)", color: "var(--green)", padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>全部修复</button>}
+                    <button onClick={() => ignoreAllOfType(type)} style={{ background: "rgba(100,116,139,.12)", border: "1px solid rgba(100,116,139,.2)", color: "var(--muted)", padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>全部忽略</button>
                   </div>
                 </div>
                 <div style={{ overflowX: "auto" }}><table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                  <thead><tr style={{ borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-                    <th style={{ padding: "6px 8px", textAlign: "left", color: "#94a3b8" }}>ID</th>
-                    <th style={{ padding: "6px 8px", textAlign: "left", color: "#94a3b8" }}>日期</th>
-                    <th style={{ padding: "6px 8px", textAlign: "left", color: "#94a3b8" }}>路线</th>
-                    <th style={{ padding: "6px 8px", textAlign: "left", color: "#94a3b8" }}>当前</th>
-                    <th style={{ padding: "6px 8px", textAlign: "left", color: "#94a3b8" }}>建议</th>
-                    <th style={{ padding: "6px 8px", textAlign: "center", color: "#94a3b8" }}>操作</th>
+                  <thead><tr style={{ borderBottom: "1px solid rgba(var(--ink),.08)" }}>
+                    <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--muted)" }}>ID</th>
+                    <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--muted)" }}>日期</th>
+                    <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--muted)" }}>路线</th>
+                    <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--muted)" }}>当前</th>
+                    <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--muted)" }}>建议</th>
+                    <th style={{ padding: "6px 8px", textAlign: "center", color: "var(--muted)" }}>操作</th>
                   </tr></thead>
                   <tbody>{items.map((x, i) => (
-                    <tr key={x.key} style={{ borderBottom: "1px solid rgba(255,255,255,.03)" }}>
-                      <td style={{ padding: "6px 8px", color: "#64748b" }}>#{x.id}</td>
+                    <tr key={x.key} style={{ borderBottom: "1px solid rgba(var(--ink),.03)" }}>
+                      <td style={{ padding: "6px 8px", color: "var(--faint)" }}>#{x.id}</td>
                       <td style={{ padding: "6px 8px" }}>{x.date || "-"}</td>
                       <td style={{ padding: "6px 8px" }}>{x.field}</td>
-                      <td style={{ padding: "6px 8px", color: "#ef4444", maxWidth: 220 }}>{x.old}</td>
-                      <td style={{ padding: "6px 8px", color: "#10b981" }}>{x.sug}</td>
+                      <td style={{ padding: "6px 8px", color: "var(--red)", maxWidth: 220 }}>{x.old}</td>
+                      <td style={{ padding: "6px 8px", color: "var(--green)" }}>{x.sug}</td>
                       <td style={{ padding: "6px 8px", textAlign: "center", whiteSpace: "nowrap" }}>
                         {editingIssue === x.key ? (
                           <div style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
                             <input type="text" value={editHwValue} onChange={e => setEditHwValue(e.target.value)} placeholder="输入路线名"
-                              style={{ width: 90, padding: "3px 8px", borderRadius: 6, border: "1px solid #334155", background: "#1e293b", color: "#e2e8f0", fontSize: 11, outline: "none" }} />
-                            <button onClick={() => saveEditIssue(x)} style={{ background: "none", border: "1px solid rgba(16,185,129,.3)", color: "#10b981", padding: "3px 8px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>保存</button>
-                            <button onClick={() => setEditingIssue(null)} style={{ background: "none", border: "none", color: "#94a3b8", padding: "3px 4px", fontSize: 11, cursor: "pointer" }}>取消</button>
+                              style={{ width: 90, padding: "3px 8px", borderRadius: 6, border: "1px solid var(--pop-border)", background: "var(--pop-bg)", color: "var(--text)", fontSize: 11, outline: "none" }} />
+                            <button onClick={() => saveEditIssue(x)} style={{ background: "none", border: "1px solid rgba(16,185,129,.3)", color: "var(--green)", padding: "3px 8px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>保存</button>
+                            <button onClick={() => setEditingIssue(null)} style={{ background: "none", border: "none", color: "var(--muted)", padding: "3px 4px", fontSize: 11, cursor: "pointer" }}>取消</button>
                           </div>
                         ) : (
                           <div style={{ display: "inline-flex", gap: 4 }}>
-                            {x.fix && <button onClick={() => applyFix(x)} style={{ background: "none", border: "1px solid rgba(96,165,250,.3)", color: "#60a5fa", padding: "3px 8px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>修复</button>}
-                            {x.type === "里程偏差" && <button onClick={() => startEditIssue(x)} style={{ background: "none", border: "1px solid rgba(249,115,22,.3)", color: "#f97316", padding: "3px 8px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>修改</button>}
-                            {(x.type === "疑似重复" || x.type === "重叠行程") && <button onClick={() => requestDeleteRecord(x.id)} style={{ background: "none", border: "1px solid rgba(239,68,68,.3)", color: "#fca5a5", padding: "3px 8px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>删除记录</button>}
-                            <button onClick={() => ignoreIssue(x)} style={{ background: "none", border: "1px solid rgba(100,116,139,.3)", color: "#94a3b8", padding: "3px 8px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>忽略</button>
+                            {x.fix && <button onClick={() => applyFix(x)} style={{ background: "none", border: "1px solid rgba(96,165,250,.3)", color: "var(--blue)", padding: "3px 8px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>修复</button>}
+                            {x.type === "里程偏差" && <button onClick={() => startEditIssue(x)} style={{ background: "none", border: "1px solid rgba(249,115,22,.3)", color: "var(--orange)", padding: "3px 8px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>修改</button>}
+                            {(x.type === "疑似重复" || x.type === "重叠行程") && <button onClick={() => requestDeleteRecord(x.id)} style={{ background: "none", border: "1px solid rgba(239,68,68,.3)", color: "var(--red-t)", padding: "3px 8px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>删除记录</button>}
+                            <button onClick={() => ignoreIssue(x)} style={{ background: "none", border: "1px solid rgba(100,116,139,.3)", color: "var(--muted)", padding: "3px 8px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>忽略</button>
                           </div>
                         )}
                       </td>
@@ -843,26 +860,26 @@ export default function App() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 14, fontWeight: 700 }}>已忽略</span>
-                  <span style={{ fontSize: 12, color: "#94a3b8" }}>{ignoredCount} 项</span>
+                  <span style={{ fontSize: 12, color: "var(--muted)" }}>{ignoredCount} 项</span>
                 </div>
-                <button onClick={clearAllIgnored} style={{ background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.2)", color: "#ef4444", padding: "4px 12px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>清空忽略列表</button>
+                <button onClick={clearAllIgnored} style={{ background: "rgba(239,68,68,.1)", border: "1px solid rgba(239,68,68,.2)", color: "var(--red)", padding: "4px 12px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>清空忽略列表</button>
               </div>
               <div style={{ overflowX: "auto" }}><table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                <thead><tr style={{ borderBottom: "1px solid rgba(255,255,255,.06)" }}>
-                  <th style={{ padding: "5px 8px", textAlign: "left", color: "#64748b" }}>ID</th>
-                  <th style={{ padding: "5px 8px", textAlign: "left", color: "#64748b" }}>类型</th>
-                  <th style={{ padding: "5px 8px", textAlign: "left", color: "#64748b" }}>路线</th>
-                  <th style={{ padding: "5px 8px", textAlign: "left", color: "#64748b" }}>详情</th>
-                  <th style={{ padding: "5px 8px", textAlign: "center", color: "#64748b" }}>操作</th>
+                <thead><tr style={{ borderBottom: "1px solid rgba(var(--ink),.06)" }}>
+                  <th style={{ padding: "5px 8px", textAlign: "left", color: "var(--faint)" }}>ID</th>
+                  <th style={{ padding: "5px 8px", textAlign: "left", color: "var(--faint)" }}>类型</th>
+                  <th style={{ padding: "5px 8px", textAlign: "left", color: "var(--faint)" }}>路线</th>
+                  <th style={{ padding: "5px 8px", textAlign: "left", color: "var(--faint)" }}>详情</th>
+                  <th style={{ padding: "5px 8px", textAlign: "center", color: "var(--faint)" }}>操作</th>
                 </tr></thead>
                 <tbody>{issues.filter(i => ignoredIssues.has(i.key)).map(x => (
-                  <tr key={x.key} style={{ borderBottom: "1px solid rgba(255,255,255,.02)", opacity: .7 }}>
-                    <td style={{ padding: "5px 8px", color: "#64748b" }}>#{x.id}</td>
-                    <td style={{ padding: "5px 8px", color: "#64748b" }}>{x.type}</td>
-                    <td style={{ padding: "5px 8px", color: "#64748b" }}>{x.field}</td>
-                    <td style={{ padding: "5px 8px", color: "#64748b" }}>{x.old}</td>
+                  <tr key={x.key} style={{ borderBottom: "1px solid rgba(var(--ink),.02)", opacity: .7 }}>
+                    <td style={{ padding: "5px 8px", color: "var(--faint)" }}>#{x.id}</td>
+                    <td style={{ padding: "5px 8px", color: "var(--faint)" }}>{x.type}</td>
+                    <td style={{ padding: "5px 8px", color: "var(--faint)" }}>{x.field}</td>
+                    <td style={{ padding: "5px 8px", color: "var(--faint)" }}>{x.old}</td>
                     <td style={{ padding: "5px 8px", textAlign: "center" }}>
-                      <button onClick={() => unignoreIssue(x.key)} style={{ background: "none", border: "1px solid rgba(96,165,250,.2)", color: "#60a5fa", padding: "2px 8px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>恢复</button>
+                      <button onClick={() => unignoreIssue(x.key)} style={{ background: "none", border: "1px solid rgba(96,165,250,.2)", color: "var(--blue)", padding: "2px 8px", borderRadius: 6, fontSize: 11, cursor: "pointer" }}>恢复</button>
                     </td>
                   </tr>
                 ))}</tbody>
@@ -873,11 +890,11 @@ export default function App() {
           <div style={{ ...boxS, padding: 16, marginTop: 14 }}>
             <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>地名词典（{placeOpts.length}）</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
-              {placeOpts.map(p => <span key={p} style={{ padding: "4px 12px", borderRadius: 8, fontSize: 12, background: "rgba(59,130,246,.1)", border: "1px solid rgba(59,130,246,.15)", color: "#93c5fd" }}>{p}</span>)}
+              {placeOpts.map(p => <span key={p} style={{ padding: "4px 12px", borderRadius: 8, fontSize: 12, background: "rgba(59,130,246,.1)", border: "1px solid rgba(59,130,246,.15)", color: "var(--blue-t)" }}>{p}</span>)}
             </div>
             <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>路线词典（{hwOpts.length}）</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {hwOpts.map(h => <span key={h} style={{ padding: "4px 12px", borderRadius: 8, fontSize: 12, background: "rgba(249,115,22,.1)", border: "1px solid rgba(249,115,22,.15)", color: "#fdba74" }}>{h}</span>)}
+              {hwOpts.map(h => <span key={h} style={{ padding: "4px 12px", borderRadius: 8, fontSize: 12, background: "rgba(249,115,22,.1)", border: "1px solid rgba(249,115,22,.15)", color: "var(--orange-t)" }}>{h}</span>)}
             </div>
           </div>
         </div>)}
@@ -891,7 +908,7 @@ export default function App() {
         select:focus { outline:none; border-color:rgba(99,102,241,.5); }
         table { font-variant-numeric:tabular-nums; }
         ::-webkit-scrollbar { width:6px; height:6px; }
-        ::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1); border-radius:3px; }
+        ::-webkit-scrollbar-thumb { background:rgba(var(--ink),.1); border-radius:3px; }
         button:hover { opacity:.85; }
       `}</style>
     </div>

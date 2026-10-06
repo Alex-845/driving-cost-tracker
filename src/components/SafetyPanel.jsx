@@ -5,16 +5,16 @@ import { mutedButton, primaryButton } from "./styles";
 export default function SafetyPanel({ onRestore, onClose }) {
   const snapshots = listSafetySnapshots();
   return (
-    <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.7 }}>
-      <div style={{ color: "#94a3b8", marginBottom: 10 }}>
+    <div style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.7 }}>
+      <div style={{ color: "var(--muted)", marginBottom: 10 }}>
         重置、恢复备份、替换导入、删除和批量修改之前，会在本浏览器自动保存恢复点（最多 5 份，换浏览器或清除站点数据后不会保留，请仍然定期导出备份）。
       </div>
-      {snapshots.length === 0 && <div style={{ padding: "14px 0", color: "#64748b" }}>目前没有恢复点。</div>}
+      {snapshots.length === 0 && <div style={{ padding: "14px 0", color: "var(--faint)" }}>目前没有恢复点。</div>}
       {snapshots.map(entry => (
-        <div key={entry.id} style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", padding: "10px 0", borderTop: "1px solid rgba(255,255,255,.07)", flexWrap: "wrap" }}>
+        <div key={entry.id} style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", padding: "10px 0", borderTop: "1px solid rgba(var(--ink),.07)", flexWrap: "wrap" }}>
           <div>
             <div style={{ fontWeight: 700 }}>{entry.label}</div>
-            <div style={{ fontSize: 11, color: "#64748b" }}>
+            <div style={{ fontSize: 11, color: "var(--faint)" }}>
               {new Date(entry.createdAt).toLocaleString("zh-CN")} · {entry.counts.records} 条行程 · {entry.counts.etcRecords} 条 ETC
             </div>
           </div>

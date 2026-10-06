@@ -14,7 +14,7 @@ function SegmentList({ title, unit, values, onChange, placeholder = "0", hint })
   const update = (index, value) => onChange(values.map((item, i) => (i === index ? value : item)));
   return (
     <div style={{ marginBottom: 12 }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: "#cbd5e1", marginBottom: 8 }}>{title}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text2)", marginBottom: 8 }}>{title}</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))", gap: 10 }}>
         {values.map((value, index) => (
           <div key={index}>
@@ -35,7 +35,7 @@ function SegmentList({ title, unit, values, onChange, placeholder = "0", hint })
         {values.length < MAX_SEGMENTS && (
           <button type="button" onClick={() => onChange([...values, ""])} style={ghostButton}>+ 增加一段</button>
         )}
-        {hint && <span style={{ fontSize: 11, color: "#64748b" }}>{hint}</span>}
+        {hint && <span style={{ fontSize: 11, color: "var(--faint)" }}>{hint}</span>}
       </div>
     </div>
   );
@@ -46,7 +46,7 @@ function NumberField({ label, unit, value, onChange, placeholder }) {
     <div>
       <label style={labelStyle}>{label}</label>
       <input type="number" min="0" step="0.01" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={inputStyle} aria-label={label} />
-      <div style={{ fontSize: 10, color: "#64748b", marginTop: 4 }}>{unit}</div>
+      <div style={{ fontSize: 10, color: "var(--faint)", marginTop: 4 }}>{unit}</div>
     </div>
   );
 }
@@ -100,7 +100,7 @@ export default function CompareTab({
     showToast(`已填入路线「${selected.routeLabel}」`);
   };
 
-  const winnerColor = result.winner === "driving" ? "#60a5fa" : result.winner === "public" ? "#10b981" : "#cbd5e1";
+  const winnerColor = result.winner === "driving" ? "var(--blue)" : result.winner === "public" ? "var(--green)" : "var(--text2)";
   const winnerBg = result.winner === "driving" ? "rgba(96,165,250,.1)" : result.winner === "public" ? "rgba(16,185,129,.1)" : "rgba(148,163,184,.1)";
   const fareNotes = (match, label) => {
     const notes = [];
@@ -113,14 +113,14 @@ export default function CompareTab({
   return (<div>
     <div style={{ ...boxStyle, padding: 18 }}>
       <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>历史行程路线查询</div>
-      <div style={{ fontSize: 12, color: "#64748b", marginBottom: 14 }}>从行程记录中选择起点、终点和具体路线，自动生成这条路线的自驾费用参数。</div>
+      <div style={{ fontSize: 12, color: "var(--faint)", marginBottom: 14 }}>从行程记录中选择起点、终点和具体路线，自动生成这条路线的自驾费用参数。</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 14 }}>
         <AutoComplete value={compareTrip.from} onChange={value => setCompareTrip({ from: value, to: compareTrip.to, route: "" })} options={placeOpts} placeholder="选择或输入出发地" label="行程起点" />
         <AutoComplete value={compareTrip.to} onChange={value => setCompareTrip({ from: compareTrip.from, to: value, route: "" })} options={destinations} placeholder="选择或输入目的地" label="行程终点" />
         <div style={{ minWidth: 0 }}>
           <label style={labelStyle}>具体路线</label>
           <select value={compareTrip.route} onChange={event => setCompareTrip({ ...compareTrip, route: event.target.value })} disabled={!profiles.length} aria-label="具体路线"
-            style={{ ...inputStyle, color: compareTrip.route ? "#e2e8f0" : "#64748b", minHeight: 41, minWidth: 0, textOverflow: "ellipsis" }}>
+            style={{ ...inputStyle, color: compareTrip.route ? "var(--text)" : "var(--faint)", minHeight: 41, minWidth: 0, textOverflow: "ellipsis" }}>
             <option value="">{compareTrip.from && compareTrip.to ? "请选择路线" : "请先选择起点和终点"}</option>
             {profiles.map(profile => (
               <option key={profile.routeValue} value={profile.routeValue}>
@@ -137,36 +137,36 @@ export default function CompareTab({
       </div>
 
       {compareTrip.from && compareTrip.to && profiles.length === 0 && (
-        <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,.08)", color: "#94a3b8", fontSize: 12 }}>
+        <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid rgba(var(--ink),.08)", color: "var(--muted)", fontSize: 12 }}>
           没有找到“{compareTrip.from} → {compareTrip.to}”的历史行程记录。
         </div>
       )}
 
       {selected && (
-        <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,.08)" }}>
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid rgba(var(--ink),.08)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 14 }}>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: "#60a5fa" }}>{compareTrip.from} → {compareTrip.to}</div>
-              <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>路线「{selected.routeLabel}」，历史 {selected.count} 次，最近记录 {selected.latestDate}</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "var(--blue)" }}>{compareTrip.from} → {compareTrip.to}</div>
+              <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>路线「{selected.routeLabel}」，历史 {selected.count} 次，最近记录 {selected.latestDate}</div>
             </div>
-            <button onClick={applyRoute} style={{ background: "rgba(59,130,246,.2)", border: "1px solid rgba(96,165,250,.32)", color: "#93c5fd", padding: "9px 16px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>填入自驾对比</button>
+            <button onClick={applyRoute} style={{ background: "rgba(59,130,246,.2)", border: "1px solid rgba(96,165,250,.32)", color: "var(--blue-t)", padding: "9px 16px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>填入自驾对比</button>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(125px,1fr))", gap: 12 }}>
             {[
-              { label: "平均单程里程", value: `${selected.averageDistance.toFixed(1)} km`, color: "#e2e8f0" },
-              { label: "平均百公里油耗", value: `${selected.averageConsumption.toFixed(1)} L`, color: "#a78bfa" },
-              { label: "最近油价", value: `¥${selected.latestFuelPrice.toFixed(2)}/L`, color: "#fbbf24" },
-              { label: "估算单程油费", value: `¥${selected.estimatedFuelCost.toFixed(2)}`, color: "#f97316" },
-              { label: "平均过路费", value: `¥${selected.averageToll.toFixed(2)}`, color: "#fb7185" },
-              { label: "估算单程总费用", value: `¥${selected.estimatedTotalCost.toFixed(2)}`, color: "#10b981" }
+              { label: "平均单程里程", value: `${selected.averageDistance.toFixed(1)} km`, color: "var(--text)" },
+              { label: "平均百公里油耗", value: `${selected.averageConsumption.toFixed(1)} L`, color: "var(--violet-t)" },
+              { label: "最近油价", value: `¥${selected.latestFuelPrice.toFixed(2)}/L`, color: "var(--amber-t)" },
+              { label: "估算单程油费", value: `¥${selected.estimatedFuelCost.toFixed(2)}`, color: "var(--orange)" },
+              { label: "平均过路费", value: `¥${selected.averageToll.toFixed(2)}`, color: "var(--rose)" },
+              { label: "估算单程总费用", value: `¥${selected.estimatedTotalCost.toFixed(2)}`, color: "var(--green)" }
             ].map(item => (
               <div key={item.label} style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 11, color: "#64748b", marginBottom: 5 }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: "var(--faint)", marginBottom: 5 }}>{item.label}</div>
                 <div style={{ fontSize: 17, fontWeight: 800, color: item.color, whiteSpace: "nowrap" }}>{item.value}</div>
               </div>
             ))}
           </div>
-          <div style={{ fontSize: 11, color: "#64748b", marginTop: 12, lineHeight: 1.7 }}>
+          <div style={{ fontSize: 11, color: "var(--faint)", marginTop: 12, lineHeight: 1.7 }}>
             {selected.tollMin !== selected.tollMax
               ? `该路线历史过路费范围 ¥${selected.tollMin.toFixed(2)} - ¥${selected.tollMax.toFixed(2)}。`
               : `该路线历史过路费均为 ¥${selected.averageToll.toFixed(2)}。`}
@@ -197,7 +197,7 @@ export default function CompareTab({
 
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 14 }}>
       <div style={{ ...boxStyle, padding: 18 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 14, color: "#60a5fa" }}>自驾往返</div>
+        <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 14, color: "var(--blue)" }}>自驾往返</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: 12 }}>
           <NumberField label="单程公里数" unit="km" value={compareForm.distance} onChange={v => set({ distance: v })} placeholder="如：230" />
           <NumberField label="油价" unit="¥/L" value={compareForm.fuelPrice} onChange={v => set({ fuelPrice: v })} placeholder="7.5" />
@@ -209,9 +209,9 @@ export default function CompareTab({
         </div>
 
         <div style={{ marginTop: 14, padding: 14, borderRadius: 10, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.18)" }}>
-          <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 5 }}>每百公里油费（自动计算）</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#60a5fa" }}>¥{result.fuelCostPer100Km.toFixed(2)} / 100km</div>
-          <div style={{ fontSize: 11, color: "#64748b", marginTop: 5 }}>油价 × 本次百公里油耗，无需手动填写</div>
+          <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 5 }}>每百公里油费（自动计算）</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: "var(--blue)" }}>¥{result.fuelCostPer100Km.toFixed(2)} / 100km</div>
+          <div style={{ fontSize: 11, color: "var(--faint)", marginTop: 5 }}>油价 × 本次百公里油耗，无需手动填写</div>
         </div>
 
         <div style={{ fontSize: 13, fontWeight: 700, marginTop: 18, marginBottom: 10 }}>分段高速过路费</div>
@@ -221,24 +221,24 @@ export default function CompareTab({
           placeholder={[recommendedReturn ? recommendedReturn.amount.toFixed(2) : "0"]}
           hint="中途下高速再上高速，就增加一段分别填写；整个方向都不填时才会按 ETC 参考价计入。" />
         {(result.outboundTollEstimated || result.returnTollEstimated) && (
-          <div style={{ fontSize: 11, color: "#fbbf24", marginBottom: 8 }}>
+          <div style={{ fontSize: 11, color: "var(--amber-t)", marginBottom: 8 }}>
             ⚠ {[result.outboundTollEstimated && "去程", result.returnTollEstimated && "返程"].filter(Boolean).join("、")}过路费未填写，当前按 ETC 参考价计入。
           </div>
         )}
 
         {(recommendedOutbound || recommendedReturn || notes.length > 0) && (
           <div style={{ marginTop: 14, padding: 12, borderRadius: 10, background: "rgba(16,185,129,.08)", border: "1px solid rgba(16,185,129,.16)" }}>
-            <div style={{ fontSize: 12, color: "#10b981", fontWeight: 700, marginBottom: 8 }}>全程直达 ETC 参考</div>
-            <div style={{ display: "grid", gap: 8, fontSize: 12, color: "#cbd5e1" }}>
+            <div style={{ fontSize: 12, color: "var(--green)", fontWeight: 700, marginBottom: 8 }}>全程直达 ETC 参考</div>
+            <div style={{ display: "grid", gap: 8, fontSize: 12, color: "var(--text2)" }}>
               <div>去程：{recommendedOutbound ? `¥${recommendedOutbound.amount.toFixed(2)}，${recommendedOutbound.count} 次记录` : "未匹配到"}</div>
               <div>返程：{recommendedReturn ? `¥${recommendedReturn.amount.toFixed(2)}，${recommendedReturn.count} 次记录` : "未匹配到"}</div>
             </div>
-            {notes.map(note => <div key={note} style={{ fontSize: 11, color: "#fbbf24", marginTop: 8 }}>⚠ {note}</div>)}
+            {notes.map(note => <div key={note} style={{ fontSize: 11, color: "var(--amber-t)", marginTop: 8 }}>⚠ {note}</div>)}
             {(recommendedOutbound || recommendedReturn) && (
               <button onClick={() => set({
                 outboundTolls: recommendedOutbound ? [String(recommendedOutbound.amount)] : compareForm.outboundTolls,
                 returnTolls: recommendedReturn ? [String(recommendedReturn.amount)] : compareForm.returnTolls
-              })} style={{ marginTop: 10, background: "rgba(16,185,129,.18)", border: "1px solid rgba(16,185,129,.28)", color: "#10b981", padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+              })} style={{ marginTop: 10, background: "rgba(16,185,129,.18)", border: "1px solid rgba(16,185,129,.28)", color: "var(--green)", padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
                 用参考费用覆盖为单段
               </button>
             )}
@@ -247,13 +247,13 @@ export default function CompareTab({
       </div>
 
       <div style={{ ...boxStyle, padding: 18 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 14, color: "#10b981" }}>公共交通往返</div>
+        <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 14, color: "var(--green)" }}>公共交通往返</div>
         <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>分段票价（每人）</div>
         <SegmentList title="去程" unit="¥/人" values={compareForm.publicOutboundFares} onChange={v => set({ publicOutboundFares: v })} placeholder="如：35" />
         <SegmentList title="返程" unit="¥/人" values={compareForm.publicReturnFares} onChange={v => set({ publicReturnFares: v })} placeholder="如：53" hint="换乘几次就有几段票价，逐段相加。" />
         <div style={{ marginTop: 14, padding: 14, borderRadius: 10, background: "rgba(16,185,129,.08)", border: "1px solid rgba(16,185,129,.18)" }}>
-          <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 5 }}>每人往返分段票价合计（自动计算）</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#10b981" }}>¥{result.publicFarePerPerson.toFixed(2)}</div>
+          <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 5 }}>每人往返分段票价合计（自动计算）</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: "var(--green)" }}>¥{result.publicFarePerPerson.toFixed(2)}</div>
         </div>
 
         <div style={{ fontSize: 13, fontWeight: 700, marginTop: 18, marginBottom: 10 }}>附加费用（全体）与耗时</div>
@@ -262,7 +262,7 @@ export default function CompareTab({
           <NumberField label="公共交通其他费用" unit="¥（全体）" value={compareForm.publicOther} onChange={v => set({ publicOther: v })} placeholder="0" />
           <NumberField label="公共交通单程总耗时（可选）" unit="分钟，含换乘等待" value={compareForm.publicMinutes} onChange={v => set({ publicMinutes: v })} placeholder="如：240" />
         </div>
-        <div style={{ marginTop: 14, padding: 12, borderRadius: 10, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.16)", fontSize: 12, color: "#93c5fd", lineHeight: 1.7 }}>
+        <div style={{ marginTop: 14, padding: 12, borderRadius: 10, background: "rgba(96,165,250,.08)", border: "1px solid rgba(96,165,250,.16)", fontSize: 12, color: "var(--blue-t)", lineHeight: 1.7 }}>
           总费用 = 去返程各段票价之和 × 出行人数 + 接驳/打车 + 其他费用。接驳和其他费用按全体合计填写，不会再乘人数。
         </div>
       </div>
@@ -271,13 +271,13 @@ export default function CompareTab({
     <div style={{ ...boxStyle, padding: 18, marginTop: 14 }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 10 }}>
         {[
-          { l: "自驾总费用", v: `¥${result.drivingTotal.toFixed(2)}`, c: "#60a5fa" },
-          { l: "自驾人均", v: `¥${result.drivingPerPerson.toFixed(2)}`, c: "#93c5fd" },
-          { l: "公共交通总费用", v: `¥${result.publicTotal.toFixed(2)}`, c: "#10b981" },
-          { l: "公共交通人均", v: `¥${result.publicPerPerson.toFixed(2)}`, c: "#86efac" }
+          { l: "自驾总费用", v: `¥${result.drivingTotal.toFixed(2)}`, c: "var(--blue)" },
+          { l: "自驾人均", v: `¥${result.drivingPerPerson.toFixed(2)}`, c: "var(--blue-t)" },
+          { l: "公共交通总费用", v: `¥${result.publicTotal.toFixed(2)}`, c: "var(--green)" },
+          { l: "公共交通人均", v: `¥${result.publicPerPerson.toFixed(2)}`, c: "var(--green-t)" }
         ].map(x => (
-          <div key={x.l} style={{ background: "rgba(255,255,255,.04)", borderRadius: 12, padding: 14, border: "1px solid rgba(255,255,255,.06)" }}>
-            <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 6 }}>{x.l}</div>
+          <div key={x.l} style={{ background: "rgba(var(--ink),.04)", borderRadius: 12, padding: 14, border: "1px solid rgba(var(--ink),.06)" }}>
+            <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 6 }}>{x.l}</div>
             <div style={{ fontSize: 20, fontWeight: 800, color: x.c }}>{x.v}</div>
           </div>
         ))}
@@ -290,14 +290,14 @@ export default function CompareTab({
               : result.winner === "tie" ? "两种方式费用相同"
                 : "信息还不完整，暂不比较"}
         </div>
-        <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.8 }}>
+        <div style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.8 }}>
           {result.winner === "incomplete" && `还需要填写：${result.missing.join("、")}。`}
           {result.winner === "tie" && "费用刚好相同，可以按时间、舒适度、停车便利性来决定。"}
           {(result.winner === "driving" || result.winner === "public") &&
             `两种方式相差 ¥${result.diff.toFixed(2)}。自驾费用包含油费 ¥${result.fuelCost.toFixed(2)}、过路费 ¥${result.tollCost.toFixed(2)}；公共交通票价合计 ¥${result.publicTicketCost.toFixed(2)}。`}
         </div>
         {result.comparable && (
-          <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.8, marginTop: 8 }}>
+          <div style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.8, marginTop: 8 }}>
             {result.timeComparison
               ? (result.timeComparison.tradeoff
                 ? `时间：${result.timeComparison.tradeoff}。`
