@@ -41,8 +41,17 @@ export const RECORD_COLUMNS = [
   { k: "fuelCost", l: "油费" },
   { k: "toll", l: "过路费" },
   { k: "totalCost", l: "总费用" },
+  { k: "costPerKm", l: "元/公里" },
   { k: "income", l: "收入" },
-  { k: "profit", l: "盈亏" }
+  { k: "netSpend", l: "净支出" }
 ];
 
-export const ISSUE_TYPES = ["空格", "里程偏差"];
+export const ISSUE_TYPES = ["空格", "里程偏差", "疑似重复", "重叠行程", "数值异常"];
+
+export const ISSUE_TYPE_COLORS = {
+  空格: { bg: "rgba(239,68,68,.15)", fg: "#ef4444" },
+  里程偏差: { bg: "rgba(139,92,246,.15)", fg: "#8b5cf6" },
+  疑似重复: { bg: "rgba(249,115,22,.15)", fg: "#f97316" },
+  重叠行程: { bg: "rgba(234,179,8,.15)", fg: "#eab308" },
+  数值异常: { bg: "rgba(236,72,153,.15)", fg: "#ec4899" }
+};

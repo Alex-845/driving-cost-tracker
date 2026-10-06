@@ -67,7 +67,8 @@ export const parseDrivingWorkbook = (arrayBuffer, records) => {
   const colMap = detectColumns(rows[headerIdx] || []);
   const parsed = [];
 
-  for (let index = headerIdx + 2; index < rows.length; index += 1) {
+  // 从表头下一行开始；说明行/合计行没有有效日期，会在下面被跳过，不会误吞第一条数据
+  for (let index = headerIdx + 1; index < rows.length; index += 1) {
     const row = rows[index];
     if (!row || row.length < 5) continue;
 
@@ -98,10 +99,18 @@ export const parseDrivingWorkbook = (arrayBuffer, records) => {
     });
   }
 
-  const existingKeys = new Set(records.map(record => `${record.date}|${record.from}|${record.to}|${record.distance}`));
-  return parsed.map(record => ({
-    ...record,
-    isDuplicate: existingKeys.has(`${record.date}|${record.from}|${record.to}|${record.distance}`)
-  }));
+  const keyOf = (record) => [
+    record.date, String(record.from || "").trim(), String(record.to || "").trim(),
+    Number(record.distance) || 0, String(record.highway || "").trim()
+  ].join("|");
+  const existingKeys = new Set(records.map(keyOf));
+  const seenInFile = new Set();
+  return parsed.map(record => {
+    const key = keyOf(record);
+    let duplicateReason = "";
+    if (existingKeys.has(key)) duplicateReason = "已存在";
+    else if (seenInFile.has(key)) duplicateReason = "文件内重复";
+    seenInFile.add(key);
+    return { ...record, isDuplicate: Boolean(duplicateReason), duplicateReason };
+  });
 };
-
